@@ -20,3 +20,63 @@ SUBSCRIBE foo bar
 > + subscribe: 表示我们成功地订阅了以响应第二个元素命名的频道。第三个参数表示我们当前订阅的频道的数量。
 > + unsubscribe: 表示我们成功地取消订阅了以响应第二个元素命名的频道。第三个参数表示我们当前订阅的频道的数量。当最后一个参数为0的时候，表示我们没有再订阅任何频道。当我们在 Pub/Sub 状态之外的时候，客户端可以发送任何类型的 Redis 命令。
 > + message: 作为由另外一个客户端发送 PUBLISH 命令的结果，它是一个消息。第二个参数是发起的频道的名字，第三个参数是实际的消息内容。
+
+## 数据库和作用域
+
+Pub/Sub 没有任何相关的键空间，它被设计的在任何等级上都不会被干扰，包括数据库数。
+在数据库10上发布的消息，将会被数据库1上的订阅者收到。
+如果你需要某种程度上的命名空间，使用环境名称为通道添加前缀(test, staging, production, ...)。
+
+## 有线协议的例子
+
+```
+SUBSCRIBE first second
+*3
+$9
+subscribe
+$5
+first
+:1
+*3
+$9
+subscribe
+$6
+second
+:2
+```
+
+在此时，我们使用另外一个客户端在名字为 sencond 的频道上执行了一个发布操作。
+
+```
+PUBLISH second hello
+```
+
+第一个客户端将会接收到：
+
+```
+*3
+$7
+message
+$6
+second
+$5
+Hello
+```
+
+现在客户端使用 UNSUBSCRIBE 命令(没有额外的参数)取消订阅所有的频道。
+
+```
+UNSUBSCRIBE
+*3
+$11
+unsubscribe
+$6
+second
+:1
+*3
+$11
+unsubscribe
+$5
+first
+:0
+```
