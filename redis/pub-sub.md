@@ -1,6 +1,10 @@
 Pub/Sub
 =======
 
+__摘要__:
+
+> 1. 原文地址: http://redis.io/topics/pubsub
+
 SUBSCRIBE，UNSUBSCRIBE 和 PUBLISH 实现了一个消息发布订阅范式，在这个范式中，发送者(publisher)不需要通过程序去发送他们的消息给特定的接收者(subscriber)。相反，发送字符化的消息到频道中，不需要事先知道哪个订阅者(如果存在的话)在频道中。订阅者可能对一个或者多个频道感兴趣，仅仅订阅他们感兴趣的频道就可以了，不需要知道这个频道中有哪些发布者(如果存在的话)。这个在发布者和订阅者之间解耦，可以有更好的可扩展性和更灵活的网络拓扑。
 例如为了订阅频道 foo 和 bar，客户端发出了一个 SUBSCRIBE 命令同时提供了频道的名字：
 
@@ -80,3 +84,27 @@ $5
 first
 :0
 ```
+
+## 模式匹配的例子
+
+Redis 的 Pub/Sub 系统支持模式匹配。客户端可能会订阅一个`glob`风格的模式，为了去接收所有名字符合给出模式的频道的消息。
+
+例如:
+
+```
+PSUBSCRIBE news.*
+```
+
+上面的命令执行后，客户端将会接收`news.arg.figurative`，`news.music.jazz`等频道的消息。所有`glob`风格的模式都是有效的，所以多个通配符也是支持的。(译者注：`glob`模式并不是正则表达式，而是Unix Shell中的通配符，[参考地址](https://en.wikipedia.org/wiki/Glob_(programming)))
+
+```
+PUNSUBSCRIBE news.*
+```
+
+当客户端从上述`glob`模式中取消订阅的时候。其他的订阅将不会被这个调用所影响。
+作为一个匹配模式的结果接收的消息，在发送时将会以不同的模式发送。
+> + 消息的类型是`pmessage`: 作为其他客户端在模式匹配的频道上发出`PUBLISH`命令的结果，它是一个接收到的消息。第二个元素是原始的匹配模式，第三个元素是发出消息的频道的名字，最后一个元素是真实消息的有效载荷。
+
+和`SUBSCRIBE`和`UNSUBSCRIBE`类似，`PSUBSCRIBE`和`PUNSUBSCRIBE`命令由系统确认来发送一种`psubscribe`和`punsubscribe`类型的消息，这种消息和`subscribe`和`unsubscribe`消息使用相同的格式。
+
+## 消息匹配模式和频道订阅
