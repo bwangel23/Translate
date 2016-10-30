@@ -1,9 +1,3 @@
----
-title: "[未完成]MySQL Character set support"
-date: 2016-10-02 08:42:48
-tags: [MySQL, 翻译]
----
-
 __摘要__:
 
 > 1. 本文是对MySQL文档 [Character Set Support](https://dev.mysql.com/doc/refman/5.7/en/charset.html) 的翻译
