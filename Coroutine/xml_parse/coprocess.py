@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pickle
+import time
 import xml.sax
 from multiprocessing import Process
 
@@ -30,28 +31,28 @@ def recvfrom(f, target):
 
 @coroutine
 def processed(target):
-    fd = open("pipe.data", "w+")
     def run_target():
         """ run_target
 
         一个永久循环的线程，从消息队列中拉取消息，将他们发送到目标之中
         """
-        try:
-            while True:
-                item = pickle.load(fd)
-                target.send(item)
-        except EOFError:
-            target.close()
+        with open("pipe.data", "rb") as fd:
+            time.sleep(1)
+            try:
+                while True:
+                    item = pickle.load(fd)
+                    target.send(item)
+            except EOFError:
+                target.close()
     Process(target=run_target).start()
+    fd = open("pipe.data", "wb")
     try:
         while True:
             item = (yield)
-            print(item, type(item))
             pickle.dump(item, fd)
             fd.flush()
     except StopIteration:
         fd.close()
-
 
 
 if __name__ == '__main__':
@@ -59,9 +60,7 @@ if __name__ == '__main__':
         emails_to_dicts(
             processed(
                 filter_on_field("title", "Test Mail",
-                    filter_on_field("title", "Test Mail",
-                        show_email_message()
-                    )
+                    show_email_message()
                 )
             )
         )
