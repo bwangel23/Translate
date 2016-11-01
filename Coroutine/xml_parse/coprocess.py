@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import pickle
-import xml.sax
 import time
+import xml.sax
 from multiprocessing import Process
 
 from base import coroutine, EventHandler, \
@@ -34,20 +34,19 @@ def processed(target):
     def run_target():
         """ run_target
 
+        一个永久循环的线程，从消息队列中拉取消息，将他们发送到目标之中
         """
-        fd = open("pipe.data", "rb")
-        try:
-            while True:
-                # 这里使用了一个笨办法，子进程睡眠一会，
-                #   等待父进程数据写入完成了以后再读取数据
-                time.sleep(1)
-                item = pickle.load(fd)
-                target.send(item)
-        except EOFError:
-            target.close()
-
+        with open("pipe.data", "rb") as fd:
+            # 这里使用了一个笨办法，子进程睡眠一会，
+            #  等待父进程数据写入完成了以后再读取数据
+            time.sleep(1)
+            try:
+                while True:
+                    item = pickle.load(fd)
+                    target.send(item)
+            except EOFError:
+                target.close()
     Process(target=run_target).start()
-
     fd = open("pipe.data", "wb")
     try:
         while True:
