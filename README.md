@@ -2,5 +2,5 @@
 ========
 
 > + 本书为本人对于一些软件，服务的文档翻译
-> + [在线阅读地址](https://www.gitbook.com/book/bwangel23/translate/details)
+> + [在线阅读地址](https://www.kancloud.cn/bwangel/translate/344793)
 > + 本翻译内容仅为个人练习，__不建议作为文档参考__
